@@ -1,6 +1,10 @@
-// Stratum data model — Pass 2 stub fidelity.
+// Stratum data model.
 // Three entities: Topic (a subject you accumulate notes on),
 // Note (a dated entry belonging to a topic), Tag (cross-cutting label for coring).
+//
+// The DATABASE_URL env var picks the target — see .env.example.
+// SQLite is the default for local dev; swap `provider` for Postgres/MySQL
+// when deploying to a platform with a persistent managed DB.
 
 generator client {
   provider = "prisma-client-js"
@@ -8,7 +12,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./stratum.db"
+  url      = env("DATABASE_URL")
 }
 
 model Topic {

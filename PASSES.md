@@ -74,3 +74,24 @@ Edge cases, validation, error handling, styling, and full CRUD across the whole 
 - **Accessibility:** labels on every input, `aria-label` on icon-less buttons, `role="alert"` on form errors, `<time dateTime>` on all dates, `role="list"`/`listitem` on strata column, visible focus rings, `prefers-color-scheme: dark` respected.
 - **Removed:** `src/components/TopicList.tsx` (superseded in Pass 3, confirmed dead).
 - **Still deferred to Pass 5 (Finish):** tests, CI, deploy config, docs beyond README, keyboard shortcuts, pagination for long note histories.
+
+---
+
+## Pass 5 — Finish (2026-04-15)
+
+Tests, CI, tooling, deploy config.
+
+- **Unit tests (Vitest):**
+  - `src/lib/validate.test.ts` — full coverage of `validateTitle`, `validateBody`, `validateTagsInput` (trim, dedup, char-rule, length caps, count cap, edge cases).
+  - `src/lib/strata.test.ts` — `bucketByDate` grouping, newest-first ordering, within-date order preservation, empty input.
+  - `vitest.config.ts` wires the `@/*` alias and scopes test discovery to `src/**/*.test.{ts,tsx}`.
+- **Lint (ESLint 9, flat config):** `eslint.config.mjs` extends `next/core-web-vitals` + `next/typescript` via `FlatCompat`. Unused-arg underscore convention allowed.
+- **Typecheck:** `npm run typecheck` runs `tsc --noEmit` against the existing strict config.
+- **Formatting:** `.prettierrc.json` with 88-col, double-quote, trailing-comma-all; `npm run format` applies it.
+- **CI:** `.github/workflows/ci.yml` runs on push to `main` and all PRs. Steps: checkout → Node 20 → `npm ci` → `prisma generate` → typecheck → lint → vitest (`--run`) → `prisma db push` → `next build`. Uses a SQLite `DATABASE_URL` for the build.
+- **Prisma config:** schema now reads `DATABASE_URL` from env (was hard-coded). `.env.example` committed with the SQLite default.
+- **Deploy:** `vercel.json` sets `buildCommand` to `prisma generate && prisma migrate deploy && next build`. README has a deploy section that calls out the SQLite → Postgres/Turso swap required for serverless.
+- **package.json:** bumped to 0.5.0. New scripts: `lint`, `typecheck`, `test`, `test:ci`, `format`, `db:studio`, `postinstall` (for prisma client on install). Added dev deps: `vitest`, `eslint` + `eslint-config-next` + `@eslint/eslintrc`, `prettier`.
+- **README rewritten** for Pass 5: app description, run/develop/deploy sections, full script table.
+- Nothing deferred at this fidelity. Pass 6 (feature expansion) would add: search, pagination, export, keyboard shortcuts, richer tag management.
+
