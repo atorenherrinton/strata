@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { db } from "@/lib/db";
 import { bucketByDate } from "@/lib/strata";
+import { getTopicWithNotes, toNote } from "@/lib/queries";
+import { matchesAll, tokenize } from "@/lib/search";
+import { countLabel } from "@/lib/format";
 import { StrataColumn } from "@/components/StrataColumn";
 import { NewNoteForm } from "@/components/NewNoteForm";
 import { TopicHeader } from "@/components/TopicHeader";
 import { NoteFocusShortcut } from "@/components/NoteFocusShortcut";
-import { matchesAll, tokenize } from "@/lib/search";
-import type { Note } from "@/lib/types";
 
 export default async function TopicPage({
   params,
@@ -21,25 +21,10 @@ export default async function TopicPage({
   const q = (rawQ ?? "").trim();
   const terms = tokenize(q);
 
-  const topic = await db.topic.findUnique({
-    where: { id },
-    include: {
-      notes: {
-        orderBy: { createdAt: "desc" },
-        include: { tags: true },
-      },
-    },
-  });
-
+  const topic = await getTopicWithNotes(id);
   if (!topic) notFound();
 
-  const allNotes: Note[] = topic.notes.map((n) => ({
-    id: n.id,
-    topicId: n.topicId,
-    body: n.body,
-    createdAt: n.createdAt,
-    tags: n.tags.map((t) => t.name),
-  }));
+  const allNotes = topic.notes.map(toNote);
   const filtered = terms.length
     ? allNotes.filter((n) => matchesAll(n, terms))
     : allNotes;
@@ -100,9 +85,8 @@ export default async function TopicPage({
       ) : (
         <>
           {q ? (
-            <p style={{ color: "var(--ink-soft)" }}>
-              {filtered.length} of {allNotes.length}{" "}
-              {allNotes.length === 1 ? "note" : "notes"} match.
+            <p className="muted">
+              {filtered.length} of {countLabel(allNotes.length, "note")} match.
             </p>
           ) : null}
           <StrataColumn strata={strata} />

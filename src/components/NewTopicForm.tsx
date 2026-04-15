@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { createTopicAction, type FormState } from "@/app/actions";
+import { createTopicAction } from "@/app/actions";
+import type { FormState } from "@/lib/actions";
 import { TITLE_MAX } from "@/lib/validate";
 
 function SubmitButton() {

@@ -5,13 +5,7 @@ import type { Note } from "@/lib/types";
 import { deleteNoteAction, updateNoteAction } from "@/app/actions";
 import { ConfirmButton } from "./ConfirmButton";
 import { BODY_MAX } from "@/lib/validate";
-
-function formatTime(d: Date): string {
-  return new Date(d).toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
+import { formatTime } from "@/lib/format";
 
 export function NoteCard({
   note,

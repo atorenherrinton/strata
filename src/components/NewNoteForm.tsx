@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
-import { createNoteAction, type FormState } from "@/app/actions";
+import { createNoteAction } from "@/app/actions";
+import type { FormState } from "@/lib/actions";
 import { BODY_MAX, TAGS_MAX_COUNT } from "@/lib/validate";
 
 function SubmitButton() {

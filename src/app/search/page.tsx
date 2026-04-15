@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
 import { bucketByDate } from "@/lib/strata";
-import { matchesAll, tokenize, type SearchableNote } from "@/lib/search";
+import { getAllNotesWithTopic } from "@/lib/queries";
+import { matchesAll, tokenize } from "@/lib/search";
 import { StrataColumn } from "@/components/StrataColumn";
 
 export const dynamic = "force-dynamic";
@@ -15,27 +15,9 @@ export default async function SearchPage({
   const q = (rawQ ?? "").trim();
   const terms = tokenize(q);
 
-  let notes: SearchableNote[] = [];
-  let total = 0;
-  if (terms.length > 0) {
-    const rows = await db.note.findMany({
-      orderBy: { createdAt: "desc" },
-      include: { tags: true, topic: true },
-    });
-    total = rows.length;
-    notes = rows
-      .map((n) => ({
-        id: n.id,
-        topicId: n.topicId,
-        body: n.body,
-        createdAt: n.createdAt,
-        tags: n.tags.map((t) => t.name),
-        topicTitle: n.topic.title,
-      }))
-      .filter((n) => matchesAll(n, terms));
-  }
-
-  const strata = bucketByDate(notes);
+  const all = terms.length ? await getAllNotesWithTopic() : [];
+  const matched = all.filter((n) => matchesAll(n, terms));
+  const strata = bucketByDate(matched);
 
   return (
     <main>
@@ -66,15 +48,16 @@ export default async function SearchPage({
         </div>
       </form>
 
-      {terms.length === 0 ? null : notes.length === 0 ? (
+      {terms.length === 0 ? null : matched.length === 0 ? (
         <p className="empty">
-          No notes match <code>{q}</code>. Searched {total}{" "}
-          {total === 1 ? "note" : "notes"}.
+          No notes match <code>{q}</code>. Searched {all.length}{" "}
+          {all.length === 1 ? "note" : "notes"}.
         </p>
       ) : (
         <>
-          <p style={{ color: "var(--ink-soft)" }}>
-            {notes.length} of {total} {total === 1 ? "note" : "notes"} matched.
+          <p className="muted">
+            {matched.length} of {all.length}{" "}
+            {all.length === 1 ? "note" : "notes"} matched.
           </p>
           <StrataColumn strata={strata} editable={false} showTopicPrefix />
         </>

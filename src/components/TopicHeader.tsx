@@ -4,6 +4,7 @@ import { useState } from "react";
 import { deleteTopicAction, updateTopicAction } from "@/app/actions";
 import { ConfirmButton } from "./ConfirmButton";
 import { TITLE_MAX } from "@/lib/validate";
+import { countLabel } from "@/lib/format";
 
 export function TopicHeader({
   topicId,
@@ -46,16 +47,11 @@ export function TopicHeader({
 
   return (
     <div>
-      <h1 style={{ display: "flex", alignItems: "baseline", gap: "0.75rem" }}>
-        <span style={{ flex: 1 }}>{title}</span>
+      <h1 className="topic-title-line">
+        <span>{title}</span>
       </h1>
-      <div
-        className="actions"
-        style={{ marginTop: "-0.5rem", marginBottom: "1.5rem" }}
-      >
-        <span style={{ color: "var(--ink-faint)", fontSize: "0.85rem" }}>
-          {noteCount} {noteCount === 1 ? "note" : "notes"}
-        </span>
+      <div className="actions topic-actions-row">
+        <span className="muted-faint">{countLabel(noteCount, "note")}</span>
         <button
           type="button"
           className="secondary"

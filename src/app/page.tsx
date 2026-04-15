@@ -1,20 +1,10 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
 import { NewTopicForm } from "@/components/NewTopicForm";
-
-function formatDate(d: Date): string {
-  return new Date(d).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
+import { getTopicsWithNoteCounts } from "@/lib/queries";
+import { countLabel, formatShortDate } from "@/lib/format";
 
 export default async function HomePage() {
-  const topics = await db.topic.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { _count: { select: { notes: true } } },
-  });
+  const topics = await getTopicsWithNoteCounts();
 
   return (
     <main>
@@ -31,8 +21,8 @@ export default async function HomePage() {
             <li key={t.id}>
               <Link href={`/topics/${t.id}`}>{t.title}</Link>
               <span className="topic-meta">
-                {t._count.notes} {t._count.notes === 1 ? "note" : "notes"} ·{" "}
-                started {formatDate(t.createdAt)}
+                {countLabel(t._count.notes, "note")} · started{" "}
+                {formatShortDate(t.createdAt)}
               </span>
             </li>
           ))}
@@ -42,7 +32,7 @@ export default async function HomePage() {
       <NewTopicForm />
 
       {topics.length > 0 ? (
-        <p style={{ marginTop: "2rem", color: "var(--ink-soft)" }}>
+        <p className="muted section-spaced">
           <a href="/api/export" download>
             Export everything as JSON
           </a>

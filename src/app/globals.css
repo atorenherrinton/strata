@@ -388,6 +388,53 @@ kbd {
   border-radius: 999px;
 }
 
+.muted {
+  color: var(--ink-soft);
+}
+
+.muted-faint {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+}
+
+.topic-actions-row {
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.topic-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.topic-title-line > span {
+  flex: 1;
+}
+
+.section-spaced {
+  margin-top: 2rem;
+}
+
+.loading-copy {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.tag-rename-form {
+  flex: 1;
+  gap: 0.5rem;
+}
+
+.error-pre {
+  background: var(--bg-elev);
+  border: 1px solid var(--rule);
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  overflow: auto;
+}
+
 .empty {
   color: var(--ink-soft);
   font-style: italic;

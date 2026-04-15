@@ -5,6 +5,7 @@ import { useState } from "react";
 import { deleteTagAction, renameTagAction } from "@/app/actions";
 import { ConfirmButton } from "./ConfirmButton";
 import { TAG_MAX_LEN } from "@/lib/validate";
+import { countLabel } from "@/lib/format";
 
 export function TagRow({ name, count }: { name: string; count: number }) {
   const [editing, setEditing] = useState(false);
@@ -14,11 +15,7 @@ export function TagRow({ name, count }: { name: string; count: number }) {
   return (
     <li>
       {editing ? (
-        <form
-          action={rename}
-          className="actions"
-          style={{ flex: 1, gap: "0.5rem" }}
-        >
+        <form action={rename} className="actions tag-rename-form">
           <label htmlFor={`rename-${name}`} className="visually-hidden">
             Rename #{name}
           </label>
@@ -42,9 +39,7 @@ export function TagRow({ name, count }: { name: string; count: number }) {
       ) : (
         <>
           <Link href={`/core?tag=${encodeURIComponent(name)}`}>#{name}</Link>
-          <span className="topic-meta">
-            {count} {count === 1 ? "note" : "notes"}
-          </span>
+          <span className="topic-meta">{countLabel(count, "note")}</span>
           <div className="actions">
             <button
               type="button"

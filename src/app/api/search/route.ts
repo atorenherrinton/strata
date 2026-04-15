@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getAllNotesWithTopic } from "@/lib/queries";
 import { matchesAll, tokenize } from "@/lib/search";
 
 export async function GET(req: Request) {
@@ -8,21 +8,7 @@ export async function GET(req: Request) {
   if (terms.length === 0) {
     return NextResponse.json({ q, count: 0, notes: [] });
   }
-
-  const rows = await db.note.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { tags: true, topic: true },
-  });
-  const matched = rows
-    .map((n) => ({
-      id: n.id,
-      topicId: n.topicId,
-      topicTitle: n.topic.title,
-      body: n.body,
-      createdAt: n.createdAt,
-      tags: n.tags.map((t) => t.name),
-    }))
-    .filter((n) => matchesAll(n, terms));
-
+  const all = await getAllNotesWithTopic();
+  const matched = all.filter((n) => matchesAll(n, terms));
   return NextResponse.json({ q, count: matched.length, notes: matched });
 }

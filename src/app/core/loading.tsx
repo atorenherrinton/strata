@@ -1,9 +1,5 @@
+import { LoadingMain } from "@/components/LoadingMain";
+
 export default function Loading() {
-  return (
-    <main>
-      <p style={{ color: "var(--ink-soft)", fontStyle: "italic" }}>
-        Drilling…
-      </p>
-    </main>
-  );
+  return <LoadingMain label="Drilling…" />;
 }

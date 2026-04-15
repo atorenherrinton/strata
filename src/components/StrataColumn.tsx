@@ -1,15 +1,6 @@
 import type { Stratum } from "@/lib/types";
+import { formatLongDate } from "@/lib/format";
 import { NoteCard } from "./NoteCard";
-
-function formatDate(iso: string): string {
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
 
 export function StrataColumn({
   strata,
@@ -30,7 +21,7 @@ export function StrataColumn({
           aria-labelledby={`d-${s.date}`}
         >
           <h3 id={`d-${s.date}`} className="stratum-date">
-            <time dateTime={s.date}>{formatDate(s.date)}</time>
+            <time dateTime={s.date}>{formatLongDate(s.date)}</time>
           </h3>
           {s.notes.map((n) => (
             <NoteCard

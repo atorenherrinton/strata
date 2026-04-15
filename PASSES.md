@@ -126,4 +126,21 @@ New capabilities layered across the whole repo. Each feature gets a page, an API
 - **CSS.** Added header-search sizing, `<kbd>` styling, wrap behavior.
 - **Still deferred to Pass 7:** pagination for very long topics/search results, real FTS backend, richer tag colors, imports (round-trip of exported JSON), share links, per-topic RSS.
 
+---
+
+## Pass 7 — Refactor (2026-04-15)
+
+No new features. Behavior unchanged externally; the internals are tidier and two low-leverage bugs fell out along the way.
+
+- **Consolidated query + mapping layer (`src/lib/queries.ts`).** One place for Prisma includes and the row-to-`Note` mappers (`toNote`, `toNoteWithTopic`). `getTopicWithNotes`, `getTopicsWithNoteCounts`, `getAllNotesWithTopic`, `getNotesByTag`, `getTagsWithCounts` replace the same includes+maps that were inlined in the home/topic/core/search/tags pages and the `/api/search` route.
+- **Shared date + count formatting (`src/lib/format.ts`).** `formatTime`, `formatShortDate`, `formatLongDate`, `countLabel`. `NoteCard`, `StrataColumn`, `TopicHeader`, `TagRow`, home page, topic page, search page all moved off their local copies.
+- **`useKeybinding` hook (`src/lib/useKeybinding.ts`).** Encapsulates the "ignore when typing / skip modifiers / cleanup on unmount" dance that `SearchBar` and `NoteFocusShortcut` were each re-implementing. Both components now call `useKeybinding("/", …)` / `useKeybinding("n", …)`.
+- **Action helpers (`src/lib/actions.ts`).** `FormState` type and `errField` / `errorQuery` helpers live outside the `"use server"` file so client components can import the type cleanly. `actions.ts` also picked up consistent `revalidatePath("/search")` calls on every mutation (previously missed — stale search results could appear after a create/edit/delete).
+- **Bug caught by the refactor:** `matchesAll` only lowered the haystack, so a caller passing uppercase terms (possible via future `/api/search?q=FOO` consumers, or any call not going through `tokenize`) would quietly miss. Now lowercases each term too. Existing test that asserted the contract now passes.
+- **Styling dedup.** Inline `style={{ color: "var(--ink-soft)", … }}`, `marginTop`, `flex`, and the long `<pre>` block in `error.tsx` moved into utility classes (`.muted`, `.muted-faint`, `.section-spaced`, `.topic-actions-row`, `.topic-title-line`, `.tag-rename-form`, `.error-pre`, `.loading-copy`). All four `loading.tsx` segment files now share a single `LoadingMain` component (pass a label).
+- **Tests.** Added `format.test.ts` and `queries.test.ts` for the new helpers. Full suite: 42 tests across 6 files, all green. `tsc --noEmit` clean.
+- **Version bump.** 0.6.0 → 0.7.0.
+- **Nothing deferred.** Pass 8 candidates: pagination, real FTS (SQLite FTS5 / Postgres tsvector), import of exported JSON, per-topic RSS.
+
+
 

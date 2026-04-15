@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
+import { getTagsWithCounts } from "@/lib/queries";
 import { TagRow } from "@/components/TagRow";
 
 export const dynamic = "force-dynamic";
@@ -10,10 +10,7 @@ export default async function TagsPage({
   searchParams: Promise<{ err?: string }>;
 }) {
   const { err } = await searchParams;
-  const tags = await db.tag.findMany({
-    orderBy: { name: "asc" },
-    include: { _count: { select: { notes: true } } },
-  });
+  const tags = await getTagsWithCounts();
 
   return (
     <main>
@@ -21,7 +18,7 @@ export default async function TagsPage({
         <Link href="/">← All topics</Link>
       </p>
       <h1>Tags</h1>
-      <p style={{ color: "var(--ink-soft)" }}>
+      <p className="muted">
         Rename a tag to retitle it everywhere. Renaming to an existing tag merges the
         two. Deleting removes the tag from every note; the notes stay.
       </p>

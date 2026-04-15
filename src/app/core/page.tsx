@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
 import { bucketByDate } from "@/lib/strata";
+import { getNotesByTag, getTagsWithCounts } from "@/lib/queries";
 import { StrataColumn } from "@/components/StrataColumn";
 import type { Note } from "@/lib/types";
 
@@ -12,27 +12,8 @@ export default async function CorePage({
   const { tag: rawTag } = await searchParams;
   const tag = rawTag?.trim().toLowerCase() || "";
 
-  const allTags = await db.tag.findMany({
-    orderBy: { name: "asc" },
-    include: { _count: { select: { notes: true } } },
-  });
-
-  let notes: Note[] = [];
-  if (tag) {
-    const rows = await db.note.findMany({
-      where: { tags: { some: { name: tag } } },
-      orderBy: { createdAt: "desc" },
-      include: { tags: true, topic: true },
-    });
-    notes = rows.map((n) => ({
-      id: n.id,
-      topicId: n.topicId,
-      body: n.body,
-      createdAt: n.createdAt,
-      tags: n.tags.map((t) => t.name),
-      topicTitle: n.topic.title,
-    }));
-  }
+  const allTags = await getTagsWithCounts();
+  const notes: Note[] = tag ? await getNotesByTag(tag) : [];
   const strata = bucketByDate(notes);
 
   return (
@@ -41,7 +22,7 @@ export default async function CorePage({
         <Link href="/">← All topics</Link>
       </p>
       <h1>Core sample</h1>
-      <p style={{ color: "var(--ink-soft)" }}>
+      <p className="muted">
         Pick a tag to slice a cross-section across every topic.
       </p>
 

@@ -18,8 +18,9 @@ Each pass is a commit (or a short series of commits) tagged `pass/N-name`. You c
 | 4    | Detail     | Edge cases, error handling, validation, styling.                         |
 | 5    | Finish     | Tests, docs, CI, deploy config.                                          |
 | 6    | Expansion  | New capabilities: search, tag management, export, keyboard shortcuts.    |
+| 7    | Refactor   | Consolidate duplication. No behavior change.                             |
 
-Later passes may be added (Pass 7: refactor, Pass 8: scale-out, etc.) but each still touches the whole repo at one fidelity.
+Later passes may be added (Pass 8: scale-out, etc.) but each still touches the whole repo at one fidelity.
 
 ## The app: Stratum
 
@@ -30,6 +31,8 @@ The app concept mirrors the repo's own layered-generation premise.
 Stack: Next.js 15 (App Router) · TypeScript · Prisma · SQLite (local) / Postgres-ready (prod).
 
 ## Current pass
+
+**Pass 7 — Refactor.** No new features. The query and mapping layer is consolidated in `src/lib/queries.ts`, date + count formatting lives in `src/lib/format.ts`, a shared `useKeybinding` hook backs the <kbd>/</kbd> and <kbd>n</kbd> shortcuts, and inline styles moved to utility classes. The refactor surfaced and fixed one real bug: `matchesAll` wasn't lowercasing caller-supplied search terms, so API-layer queries with uppercase input silently missed. Full vitest suite (42 tests) stays green.
 
 **Pass 6 — Expansion.** On top of the Finish-fidelity base the app now has: global + per-topic search (AND-of-terms across body, tags, and topic titles), a dedicated tags page with rename/merge/delete, JSON + Markdown export (per topic and full backup), and keyboard shortcuts (<kbd>/</kbd> focuses the header search, <kbd>n</kbd> jumps to the new-note field on a topic page). All new features are tested and ship through the same CI + deploy chain established in Pass 5.
 

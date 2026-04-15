@@ -22,7 +22,7 @@ export function matchesAll(note: SearchableNote, terms: string[]): boolean {
   ]
     .join(" ")
     .toLowerCase();
-  return terms.every((t) => haystack.includes(t));
+  return terms.every((t) => haystack.includes(t.toLowerCase()));
 }
 
 export function highlight(text: string, terms: string[]): Array<{ text: string; hit: boolean }> {

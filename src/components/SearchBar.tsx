@@ -1,33 +1,21 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useKeybinding } from "@/lib/useKeybinding";
 
 export function SearchBar() {
   const ref = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
   const params = useSearchParams();
-  const currentQ = pathname === "/search" ? params.get("q") ?? "" : "";
+  const currentQ = pathname === "/search" ? (params.get("q") ?? "") : "";
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
-      const target = e.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable)
-      ) {
-        return;
-      }
-      e.preventDefault();
-      ref.current?.focus();
-      ref.current?.select();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+  const focusSearch = useCallback((e: KeyboardEvent) => {
+    e.preventDefault();
+    ref.current?.focus();
+    ref.current?.select();
   }, []);
+  useKeybinding("/", focusSearch);
 
   return (
     <form action="/search" method="get" role="search" className="header-search">
