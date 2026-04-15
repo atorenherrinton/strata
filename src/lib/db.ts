@@ -1,4 +1,9 @@
-// Prisma client singleton. Pass 2: stub — returns a placeholder until Pass 3.
-import type { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
-export const db: PrismaClient = null as unknown as PrismaClient;
+declare global {
+  // eslint-disable-next-line no-var
+  var __prisma: PrismaClient | undefined;
+}
+
+export const db = global.__prisma ?? new PrismaClient();
+if (process.env.NODE_ENV !== "production") global.__prisma = db;

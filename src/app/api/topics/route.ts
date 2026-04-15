@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 
 export async function GET() {
-  return NextResponse.json({ topics: [] });
+  const topics = await db.topic.findMany({ orderBy: { createdAt: "desc" } });
+  return NextResponse.json({ topics });
 }
 
-export async function POST(_req: Request) {
-  return NextResponse.json({ id: null }, { status: 501 });
+export async function POST(req: Request) {
+  const { title } = await req.json();
+  const topic = await db.topic.create({ data: { title } });
+  return NextResponse.json(topic, { status: 201 });
 }

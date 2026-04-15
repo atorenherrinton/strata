@@ -22,7 +22,16 @@ Later passes may be added (Pass 6: feature expansion, Pass 7: refactor, etc.) bu
 
 ## Current pass
 
-**Pass 2 — Blocking.** App concept locked: **Stratum**, a web app for time-layered notes. Topics accumulate notes over time and render as stacked strata by date; a "core sample" view filters by tag to cut a cross-section across topics. Stack: Next.js 15 (App Router) + TypeScript + Prisma + SQLite. All routes, components, and models exist as stubs — no logic yet. Pass 3 (Rough) will wire up happy-path CRUD end-to-end.
+**Pass 3 — Rough.** Happy-path end-to-end. You can create a topic, add notes with tags, see them grouped into strata by date on the topic page, and "core sample" across topics by tag. Stack: Next.js 15 (App Router) + TypeScript + Prisma + SQLite. No validation, no error handling, no styling — that's Pass 4 (Detail).
+
+### Run it
+
+```
+npm install
+npx prisma db push
+npm run dev
+```
+
 
 ## Rules for the AI
 

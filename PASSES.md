@@ -28,3 +28,22 @@ A running record of what each pass did, what it chose, and what it deferred.
 - Deferred: DB client wiring, happy-path CRUD, date bucketing, core-sample query, styling, error handling, tests.
 
 ---
+
+## Pass 3 — Rough (2026-04-15)
+
+End-to-end happy path. Every screen works when you do the obvious thing.
+
+- **DB client wired** (`src/lib/db.ts`): real Prisma singleton with dev-mode hot-reload guard.
+- **Server actions** (`src/app/actions.ts`): `createTopic`, `createNote` (with tag connect-or-create).
+- **Pages now fetch real data:**
+  - `/` — lists topics from DB, has a "new topic" form that creates one and redirects into it.
+  - `/topics/[id]` — loads topic + its notes (with tags), groups them into strata by ISO date via `bucketByDate`, renders the column, shows a new-note form.
+  - `/core` — new page. Lists all tags in a dropdown; submitting filters notes across all topics by that tag and renders them as a strata column prefixed with topic title.
+- **API routes now functional:** `GET/POST /api/topics`, `GET/POST /api/topics/[id]/notes`, `GET /api/core?tag=…` — all hit the DB for real.
+- **Components:** `StrataColumn`, `NoteCard` render real data including tags; added `NewNoteForm` (binds topicId to the `createNote` action). `TopicList` kept but superseded by the home page's inline list.
+- **Helpers** (`src/lib/strata.ts`): `bucketByDate` (groups notes by ISO date, newest first) and `parseTags` (splits comma list, lowercases, trims).
+- **.gitignore:** added `.next/`, `*.db`, `*.db-journal`.
+- Not run locally yet — no `npm install` or `prisma db push` in this pass. First-run setup is: `npm install && npx prisma db push && npm run dev`.
+- Deferred to Pass 4: input validation, empty-state copy, error handling, loading states, 404s, edit/delete, styling, accessibility.
+
+---
