@@ -21,8 +21,9 @@ Each pass is a commit (or a short series of commits) tagged `pass/N-name`. You c
 | 7    | Refactor   | Consolidate duplication. No behavior change.                             |
 | 8    | Scale-out  | Pagination, JSON import, per-topic RSS, sitemap + robots.                |
 | 9    | Rich content | Safe markdown rendering in every note view; RSS carries HTML too.      |
+| 10   | Hardening    | Rate limits, security headers, structured logs, sanitized error UI.    |
 
-Later passes may be added (Pass 10: multi-user/auth, Pass 11: real FTS, etc.) but each still touches the whole repo at one fidelity.
+Later passes may be added (Pass 11: multi-user/auth, Pass 12: real FTS, etc.) but each still touches the whole repo at one fidelity.
 
 ## The app: Stratum
 
@@ -33,6 +34,8 @@ The app concept mirrors the repo's own layered-generation premise.
 Stack: Next.js 15 (App Router) · TypeScript · Prisma · SQLite (local) / Postgres-ready (prod).
 
 ## Current pass
+
+**Pass 10 — Hardening.** A Next.js middleware attaches `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, and a tight `Permissions-Policy` to every response, and runs every mutating request (`POST/PATCH/PUT/DELETE`) through a fixed-window in-memory rate limiter — 60/min by default, 5/min on the import endpoint. A tiny `src/lib/log.ts` emits structured JSON in production and pretty lines in dev; the import action logs both accepts and rejects. The global `error.tsx` boundary no longer leaks `error.message` in production. 78 tests across 11 files.
 
 **Pass 9 — Rich content.** Notes accept a small, safe subset of markdown — `**bold**`, `*italic*`, inline and fenced `code`, and `[links](https://…)` — rendered by a dependency-free, whitelist-output renderer in `src/lib/markdown.ts`. Every surface that displays a note now renders it (topic, core, search cards); RSS feeds carry both plain-text `<description>` and HTML `<content:encoded>`; and full-text search matches against the rendered plain text so `granite` finds a note that stored `**granite**`. 74 tests across 10 files.
 

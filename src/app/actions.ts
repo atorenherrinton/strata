@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { errField, errorQuery, type FormState } from "@/lib/actions";
 import { validateBody, validateTagsInput, validateTitle } from "@/lib/validate";
 import { parseImportJson, summarize } from "@/lib/import";
+import { log } from "@/lib/log";
 
 export type { FormState };
 
@@ -173,9 +174,13 @@ export async function importAction(
 
   const text = await file.text();
   const parsed = parseImportJson(text);
-  if (!parsed.ok) return errField(parsed.error);
+  if (!parsed.ok) {
+    log.warn("import rejected", { reason: parsed.error, bytes: file.size });
+    return errField(parsed.error);
+  }
 
   const summary = summarize(parsed.payload);
+  log.info("import accepted", { ...summary, bytes: file.size });
 
   await db.$transaction(async (tx) => {
     for (const t of parsed.payload.topics) {

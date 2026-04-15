@@ -173,6 +173,22 @@ Note bodies become formatted text. Everywhere a note renders, it renders markdow
 - **Version bump.** 0.8.0 → 0.9.0.
 - **Still deferred:** real FTS, multi-user / auth, import rate limiting, richer tag colors, image/attachment support, task checkboxes in markdown.
 
+---
+
+## Pass 10 — Hardening (2026-04-15)
+
+Every public surface defensible. Not a redesign — a tightening.
+
+- **Rate limiter (`src/lib/ratelimit.ts`).** Fixed-window, process-local, bounded-memory map (5 000 buckets, expired entries swept, oldest evicted past the cap). Typed `RateLimitResult` with `{ ok, limit, remaining, resetAt }`. Test seam `__resetRateLimits` for the suite. Docstring is explicit that multi-instance deployments need a shared backend (Redis, Upstash) — the public API is the same.
+- **Edge middleware (`src/middleware.ts`).** Runs on every non-static request. Attaches security headers to every response: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` stripping camera/microphone/geolocation. Applies rate limits to mutating methods (`POST/PATCH/PUT/DELETE`): 60/min by default, 5/min on `/import` and `/api/import*`. Adds `X-RateLimit-*` response headers on success; returns a 429 with `Retry-After` when exceeded.
+- **Structured logger (`src/lib/log.ts`).** `log.debug/info/warn/error`. One-JSON-line-per-call in production (with ISO timestamp), pretty console output in dev. Wired into `importAction`: rejections log `warn` with reason + bytes; acceptances log `info` with the three-count summary.
+- **Error sanitization.** `src/app/error.tsx` no longer dumps `error.message` in production. It shows `error.digest` (stable, non-sensitive) or a bland fallback; dev still shows the full message for debugging.
+- **IP attribution.** Middleware prefers `x-forwarded-for`'s first entry, falls back to `x-real-ip`, then `"unknown"`. Good enough behind Vercel / most proxies.
+- **Tests.** `src/lib/ratelimit.test.ts` uses fake timers to cover allow/block thresholds, `remaining` / `resetAt` math, window reset, and bucket independence. 11 files, 78 tests, green. `tsc --noEmit` clean.
+- **Version bump.** 0.9.0 → 0.10.0.
+- **Still deferred:** Redis-backed shared rate limiter for serverless, CSP (needs inline-style audit / nonces given the renderer's output), multi-user / auth, image attachments.
+
+
 
 
 

@@ -14,11 +14,18 @@ export default function GlobalError({
     console.error(error);
   }, [error]);
 
+  const isProd = process.env.NODE_ENV === "production";
+  const detail = isProd
+    ? error.digest
+      ? `Reference: ${error.digest}`
+      : "The error has been logged."
+    : error.message;
+
   return (
     <main>
       <h1>A fault in the strata</h1>
       <p>Something broke while loading this page.</p>
-      <pre className="error-pre">{error.message}</pre>
+      <pre className="error-pre">{detail}</pre>
       <div className="actions">
         <button type="button" onClick={reset}>
           Try again
