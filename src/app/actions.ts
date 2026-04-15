@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { errField, errorQuery, type FormState } from "@/lib/actions";
 import { validateBody, validateTagsInput, validateTitle } from "@/lib/validate";
+import { parseImportJson, summarize } from "@/lib/import";
 
 export type { FormState };
 
@@ -156,4 +157,54 @@ export async function deleteTagAction(name: string) {
   revalidatePath("/core");
   revalidatePath("/search");
   redirect("/tags");
+}
+
+// ---- Import -------------------------------------------------------------
+
+export async function importAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0)
+    return errField("Choose a JSON file to import.");
+  if (file.size > 10_000_000)
+    return errField("Import file is larger than 10 MB.");
+
+  const text = await file.text();
+  const parsed = parseImportJson(text);
+  if (!parsed.ok) return errField(parsed.error);
+
+  const summary = summarize(parsed.payload);
+
+  await db.$transaction(async (tx) => {
+    for (const t of parsed.payload.topics) {
+      await tx.topic.create({
+        data: {
+          title: t.title,
+          createdAt: t.createdAt ? new Date(t.createdAt) : undefined,
+          notes: {
+            create: t.notes.map((n) => ({
+              body: n.body,
+              createdAt: new Date(n.createdAt),
+              tags: {
+                connectOrCreate: n.tags.map((name) => ({
+                  where: { name },
+                  create: { name },
+                })),
+              },
+            })),
+          },
+        },
+      });
+    }
+  });
+
+  revalidatePath("/");
+  revalidatePath("/tags");
+  revalidatePath("/core");
+  revalidatePath("/search");
+  redirect(
+    `/?imported=${summary.topics}t-${summary.notes}n-${summary.tags}tags`,
+  );
 }

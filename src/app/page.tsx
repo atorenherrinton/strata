@@ -3,12 +3,31 @@ import { NewTopicForm } from "@/components/NewTopicForm";
 import { getTopicsWithNoteCounts } from "@/lib/queries";
 import { countLabel, formatShortDate } from "@/lib/format";
 
-export default async function HomePage() {
+function parseImportedBadge(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const m = raw.match(/^(\d+)t-(\d+)n-(\d+)tags$/);
+  if (!m) return null;
+  const [, t, n, g] = m;
+  return `Imported ${countLabel(+t, "topic")}, ${countLabel(+n, "note")}, and ${countLabel(+g, "tag")}.`;
+}
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ imported?: string }>;
+}) {
+  const { imported } = await searchParams;
+  const banner = parseImportedBadge(imported);
   const topics = await getTopicsWithNoteCounts();
 
   return (
     <main>
       <h1>Topics</h1>
+      {banner ? (
+        <p className="import-banner" role="status">
+          {banner}
+        </p>
+      ) : null}
 
       {topics.length === 0 ? (
         <p className="empty">
@@ -31,13 +50,17 @@ export default async function HomePage() {
 
       <NewTopicForm />
 
-      {topics.length > 0 ? (
-        <p className="muted section-spaced">
-          <a href="/api/export" download>
-            Export everything as JSON
-          </a>
-        </p>
-      ) : null}
+      <p className="muted section-spaced">
+        {topics.length > 0 ? (
+          <>
+            <a href="/api/export" download>
+              Export everything as JSON
+            </a>
+            {" · "}
+          </>
+        ) : null}
+        <Link href="/import">Import from JSON</Link>
+      </p>
     </main>
   );
 }

@@ -73,6 +73,14 @@ export function TopicHeader({
         >
           Export .json
         </a>
+        <a
+          className="back-link"
+          href={`/topics/${topicId}/feed.xml`}
+          target="_blank"
+          rel="noopener"
+        >
+          RSS
+        </a>
         <form action={remove} className="inline-form">
           <ConfirmButton
             message={`Delete "${title}" and all its notes? This cannot be undone.`}

@@ -45,6 +45,27 @@ export function getTopicWithNotes(id: string) {
   });
 }
 
+export async function getTopicPage(
+  id: string,
+  opts: { skip: number; take: number },
+) {
+  const [topic, count] = await Promise.all([
+    db.topic.findUnique({
+      where: { id },
+      include: {
+        notes: {
+          orderBy: { createdAt: "desc" },
+          include: { tags: true },
+          skip: opts.skip,
+          take: opts.take,
+        },
+      },
+    }),
+    db.note.count({ where: { topicId: id } }),
+  ]);
+  return { topic, total: count };
+}
+
 export async function getTopicsWithNoteCounts() {
   return db.topic.findMany({
     orderBy: { createdAt: "desc" },

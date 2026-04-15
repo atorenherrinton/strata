@@ -2,22 +2,26 @@ import Link from "next/link";
 import { bucketByDate } from "@/lib/strata";
 import { getAllNotesWithTopic } from "@/lib/queries";
 import { matchesAll, tokenize } from "@/lib/search";
+import { paginate, parsePage } from "@/lib/pagination";
 import { StrataColumn } from "@/components/StrataColumn";
+import { Pager } from "@/components/Pager";
 
 export const dynamic = "force-dynamic";
 
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const { q: rawQ } = await searchParams;
+  const { q: rawQ, page: rawPage } = await searchParams;
   const q = (rawQ ?? "").trim();
   const terms = tokenize(q);
+  const pageNum = parsePage(rawPage);
 
   const all = terms.length ? await getAllNotesWithTopic() : [];
   const matched = all.filter((n) => matchesAll(n, terms));
-  const strata = bucketByDate(matched);
+  const page = paginate(matched, pageNum);
+  const strata = bucketByDate(page.items);
 
   return (
     <main>
@@ -60,6 +64,7 @@ export default async function SearchPage({
             {all.length === 1 ? "note" : "notes"} matched.
           </p>
           <StrataColumn strata={strata} editable={false} showTopicPrefix />
+          <Pager page={page} pathname="/search" extraParams={{ q }} />
         </>
       )}
     </main>

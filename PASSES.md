@@ -142,5 +142,21 @@ No new features. Behavior unchanged externally; the internals are tidier and two
 - **Version bump.** 0.6.0 → 0.7.0.
 - **Nothing deferred.** Pass 8 candidates: pagination, real FTS (SQLite FTS5 / Postgres tsvector), import of exported JSON, per-topic RSS.
 
+---
+
+## Pass 8 — Scale-out (2026-04-15)
+
+The theme is surviving larger datasets and being a good citizen of the wider web.
+
+- **Pagination** (`src/lib/pagination.ts` + `src/components/Pager.tsx`). `PAGE_SIZE = 50`, `parsePage` (clamps to ≥1, floors to int, defaults on NaN), `paginate<T>` (clamps over-large pages to the last). Topic page uses Prisma `skip/take` + `count` when not filtering, and in-memory pagination when filtering (same-topic ceiling); search page paginates in memory. `Pager` renders Newer/Older links and preserves the current query string.
+- **Import** (`src/lib/import.ts` + `/import` page). Round-trips the Pass 6 export format. `parseImportJson` validates `schemaVersion === 1`, runs every title / body / tag through the existing Pass 4 validators, and falls back to the current date for missing `createdAt`. `importAction` wraps the whole insert in `$transaction`, enforces a 10 MB file cap, and redirects home with an `?imported=…` summary that the home page decodes into a green banner.
+- **RSS feeds** (`src/lib/rss.ts` + `GET /topics/[id]/feed.xml`). XML-escaper + RSS 2.0 builder; per-topic feed links from the topic header (opens in a new tab). Items carry tags as `<category>` and use note ids as non-permalink GUIDs. Limited to the 50 most recent notes, 60-second CDN cache.
+- **Sitemap + robots** (`src/app/sitemap.ts`, `src/app/robots.ts`). Dynamic sitemap lists the five static routes plus one entry per topic. Robots disallows `/api/` and `/import`. Both honour `NEXT_PUBLIC_SITE_URL` with a localhost fallback.
+- **Home page** now shows an import success banner (decoded from `?imported=Nt-Nn-Ntags`) and exposes the "Import from JSON" link alongside the existing export link.
+- **Tests.** New suites for `pagination`, `import`, and `rss`. Totals: 9 files, 59 tests, all green. `tsc --noEmit` clean.
+- **Version bump.** 0.7.0 → 0.8.0.
+- **Still deferred:** real FTS backend (SQLite FTS5 / Postgres tsvector), richer tag colors, multi-user / auth, rate limiting on the import endpoint.
+
+
 
 

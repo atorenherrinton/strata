@@ -1,34 +1,68 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { bucketByDate } from "@/lib/strata";
-import { getTopicWithNotes, toNote } from "@/lib/queries";
+import { getTopicPage, getTopicWithNotes, toNote } from "@/lib/queries";
 import { matchesAll, tokenize } from "@/lib/search";
 import { countLabel } from "@/lib/format";
+import { PAGE_SIZE, paginate, parsePage } from "@/lib/pagination";
 import { StrataColumn } from "@/components/StrataColumn";
 import { NewNoteForm } from "@/components/NewNoteForm";
 import { TopicHeader } from "@/components/TopicHeader";
 import { NoteFocusShortcut } from "@/components/NoteFocusShortcut";
+import { Pager } from "@/components/Pager";
 
 export default async function TopicPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ err?: string; q?: string }>;
+  searchParams: Promise<{ err?: string; q?: string; page?: string }>;
 }) {
   const { id } = await params;
-  const { err, q: rawQ } = await searchParams;
+  const { err, q: rawQ, page: rawPage } = await searchParams;
   const q = (rawQ ?? "").trim();
   const terms = tokenize(q);
+  const pageNum = parsePage(rawPage);
+  const filtering = terms.length > 0;
 
-  const topic = await getTopicWithNotes(id);
-  if (!topic) notFound();
+  // Two paths: paginated DB read (no filter) vs. full read + in-memory
+  // filter + paginate (search within topic). The in-memory path is still
+  // bounded by one topic's note count, which is the right ceiling.
+  let notes;
+  let pagerInfo;
 
-  const allNotes = topic.notes.map(toNote);
-  const filtered = terms.length
-    ? allNotes.filter((n) => matchesAll(n, terms))
-    : allNotes;
-  const strata = bucketByDate(filtered);
+  if (!filtering) {
+    const { topic, total } = await getTopicPage(id, {
+      skip: (pageNum - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    });
+    if (!topic) notFound();
+    notes = topic.notes.map(toNote);
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    pagerInfo = {
+      topic,
+      totalAll: total,
+      page: {
+        items: notes,
+        page: Math.min(pageNum, totalPages),
+        pageSize: PAGE_SIZE,
+        total,
+        totalPages,
+      },
+      filteredCount: total,
+    };
+  } else {
+    const topic = await getTopicWithNotes(id);
+    if (!topic) notFound();
+    const all = topic.notes.map(toNote);
+    const matched = all.filter((n) => matchesAll(n, terms));
+    const page = paginate(matched, pageNum);
+    notes = page.items;
+    pagerInfo = { topic, totalAll: all.length, page, filteredCount: matched.length };
+  }
+
+  const { topic, totalAll, page, filteredCount } = pagerInfo;
+  const strata = bucketByDate(notes);
 
   return (
     <main>
@@ -36,11 +70,7 @@ export default async function TopicPage({
       <p className="back-link">
         <Link href="/">← All topics</Link>
       </p>
-      <TopicHeader
-        topicId={id}
-        title={topic.title}
-        noteCount={allNotes.length}
-      />
+      <TopicHeader topicId={id} title={topic.title} noteCount={totalAll} />
       {err ? (
         <p className="form-error" role="alert">
           {err}
@@ -73,23 +103,28 @@ export default async function TopicPage({
 
       <NewNoteForm topicId={id} />
 
-      {allNotes.length === 0 ? (
+      {totalAll === 0 ? (
         <p className="empty">
           No notes yet. Add one above — each note lands in today's layer. (Press{" "}
           <kbd>n</kbd> to focus the note field.)
         </p>
-      ) : filtered.length === 0 ? (
+      ) : filtering && filteredCount === 0 ? (
         <p className="empty">
           No notes in this topic match <code>{q}</code>.
         </p>
       ) : (
         <>
-          {q ? (
+          {filtering ? (
             <p className="muted">
-              {filtered.length} of {countLabel(allNotes.length, "note")} match.
+              {filteredCount} of {countLabel(totalAll, "note")} match.
             </p>
           ) : null}
           <StrataColumn strata={strata} />
+          <Pager
+            page={page}
+            pathname={`/topics/${id}`}
+            extraParams={q ? { q } : {}}
+          />
         </>
       )}
     </main>
