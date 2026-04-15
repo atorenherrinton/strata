@@ -1,0 +1,34 @@
+// Stratum data model — Pass 2 stub fidelity.
+// Three entities: Topic (a subject you accumulate notes on),
+// Note (a dated entry belonging to a topic), Tag (cross-cutting label for coring).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./stratum.db"
+}
+
+model Topic {
+  id        String   @id @default(cuid())
+  title     String
+  createdAt DateTime @default(now())
+  notes     Note[]
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+  tags      Tag[]    @relation("NoteTags")
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  notes Note[] @relation("NoteTags")
+}

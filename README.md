@@ -22,7 +22,7 @@ Later passes may be added (Pass 6: feature expansion, Pass 7: refactor, etc.) bu
 
 ## Current pass
 
-**Pass 1 — Silhouette.** The app concept is deliberately undetermined. Pass 2 chooses it.
+**Pass 2 — Blocking.** App concept locked: **Stratum**, a web app for time-layered notes. Topics accumulate notes over time and render as stacked strata by date; a "core sample" view filters by tag to cut a cross-section across topics. Stack: Next.js 15 (App Router) + TypeScript + Prisma + SQLite. All routes, components, and models exist as stubs — no logic yet. Pass 3 (Rough) will wire up happy-path CRUD end-to-end.
 
 ## Rules for the AI
 
