@@ -14,11 +14,12 @@ Each pass is a commit (or a short series of commits) tagged `pass/N-name`. You c
 |------|------------|--------------------------------------------------------------------------|
 | 1    | Silhouette | Folders, stub files, this README. No app concept committed yet.          |
 | 2    | Blocking   | App concept chosen. Data models, routes, entry points — all stubs.       |
-| 3    | Rough      | Happy-path functionality, end-to-end. No error handling, no polish.      |
+| 3    | Rough      | Happy-path functionality, end-to-end. No error handling, no polish.     |
 | 4    | Detail     | Edge cases, error handling, validation, styling.                         |
 | 5    | Finish     | Tests, docs, CI, deploy config.                                          |
+| 6    | Expansion  | New capabilities: search, tag management, export, keyboard shortcuts.    |
 
-Later passes may be added (Pass 6: feature expansion, Pass 7: refactor, etc.) but each still touches the whole repo at one fidelity.
+Later passes may be added (Pass 7: refactor, Pass 8: scale-out, etc.) but each still touches the whole repo at one fidelity.
 
 ## The app: Stratum
 
@@ -30,7 +31,7 @@ Stack: Next.js 15 (App Router) · TypeScript · Prisma · SQLite (local) / Postg
 
 ## Current pass
 
-**Pass 5 — Finish.** Unit tests (Vitest) cover the validation and date-bucketing logic, ESLint and TypeScript are wired up, a GitHub Actions workflow runs the full verify chain on every PR, and the project is configured to deploy to Vercel. `DATABASE_URL` drives Prisma so production can point at Postgres or Turso without code changes.
+**Pass 6 — Expansion.** On top of the Finish-fidelity base the app now has: global + per-topic search (AND-of-terms across body, tags, and topic titles), a dedicated tags page with rename/merge/delete, JSON + Markdown export (per topic and full backup), and keyboard shortcuts (<kbd>/</kbd> focuses the header search, <kbd>n</kbd> jumps to the new-note field on a topic page). All new features are tested and ship through the same CI + deploy chain established in Pass 5.
 
 ### Run it locally
 

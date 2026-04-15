@@ -190,8 +190,31 @@ button:disabled {
   margin: 0 auto;
   display: flex;
   gap: 1.25rem;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.header-search {
+  flex: 1 1 14rem;
+  max-width: 22rem;
+  min-width: 10rem;
+}
+
+.header-search input {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--rule);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  color: var(--ink-soft);
 }
 
 .brand {

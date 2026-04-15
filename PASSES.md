@@ -95,3 +95,35 @@ Tests, CI, tooling, deploy config.
 - **README rewritten** for Pass 5: app description, run/develop/deploy sections, full script table.
 - Nothing deferred at this fidelity. Pass 6 (feature expansion) would add: search, pagination, export, keyboard shortcuts, richer tag management.
 
+---
+
+## Pass 6 — Expansion (2026-04-15)
+
+New capabilities layered across the whole repo. Each feature gets a page, an API route, and keyboard ergonomics.
+
+- **Full-text search** — global and per-topic.
+  - `src/lib/search.ts`: `tokenize` (whitespace-split, lowercase, AND semantics), `matchesAll` (case-insensitive match across body + topic title + tags), `highlight` (segment-with-hit splitter for future inline rendering).
+  - `/search` page with a prominent query box, AND-of-terms across topics, strata view with topic prefix on each note.
+  - Topic page grew a `?q=` filter that narrows notes within that topic without leaving the page.
+  - `GET /api/search?q=…` returns matched notes with topic titles.
+  - **Caveat:** current implementation loads notes into memory and filters in JS. Fine for SQLite/single-user; at real scale, swap to SQLite FTS5 or Postgres `tsvector`. Documented in `search.ts`.
+- **Tag management** — the page tags deserved.
+  - `/tags` lists every tag with its note count. Inline rename; renaming to an existing tag *merges* (reassigns every note from old → new, then drops the old tag, in a single `$transaction`). Delete removes the tag but keeps the notes.
+  - `TagRow` client component drives the row UI, reusing `ConfirmButton`.
+  - Server actions: `renameTagAction`, `deleteTagAction` with validation via existing `validateTagsInput` (guaranteeing normalized names).
+  - REST symmetry: `GET /api/tags`, `PATCH /api/tags/[name]` (rename or merge), `DELETE /api/tags/[name]`.
+- **Export.**
+  - `src/lib/export.ts`: `topicToMarkdown` (date-grouped bullets with trailing `#tag` list), `slugify` (60-char filename slug with safe fallback).
+  - `GET /api/export` → full JSON dump of all topics + notes + tags with schema version + timestamp.
+  - `GET /api/topics/[id]/export?format=md|json` → per-topic export; `Content-Disposition` attaches the file.
+  - Topic header shows "Export .md" / "Export .json" links. Home page gets a "Export everything as JSON" link once there's something to export.
+- **Keyboard shortcuts.**
+  - `SearchBar` listens for <kbd>/</kbd> (unless already typing) and focuses the header search field.
+  - `NoteFocusShortcut` on the topic page listens for <kbd>n</kbd> and jumps to the new-note textarea. Empty-state copy advertises it.
+  - Header `SearchBar` is wrapped in a `Suspense` boundary so Next 15 can statically render pages that embed it.
+- **Nav.** `SiteHeader` now has Topics / Core / Tags / Search with a search input centered in the header. Wraps gracefully on narrow widths.
+- **Tests.** `src/lib/search.test.ts` (tokenize, matchesAll, highlight merging + disjoint hits) and `src/lib/export.test.ts` (slugify edge cases, markdown structure + date ordering) join the existing Vitest suite. CI picks them up automatically.
+- **CSS.** Added header-search sizing, `<kbd>` styling, wrap behavior.
+- **Still deferred to Pass 7:** pagination for very long topics/search results, real FTS backend, richer tag colors, imports (round-trip of exported JSON), share links, per-topic RSS.
+
+

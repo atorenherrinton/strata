@@ -40,6 +40,14 @@ export default async function HomePage() {
       )}
 
       <NewTopicForm />
+
+      {topics.length > 0 ? (
+        <p style={{ marginTop: "2rem", color: "var(--ink-soft)" }}>
+          <a href="/api/export" download>
+            Export everything as JSON
+          </a>
+        </p>
+      ) : null}
     </main>
   );
 }

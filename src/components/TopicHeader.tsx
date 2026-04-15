@@ -63,6 +63,20 @@ export function TopicHeader({
         >
           Rename
         </button>
+        <a
+          className="back-link"
+          href={`/api/topics/${topicId}/export?format=md`}
+          download
+        >
+          Export .md
+        </a>
+        <a
+          className="back-link"
+          href={`/api/topics/${topicId}/export?format=json`}
+          download
+        >
+          Export .json
+        </a>
         <form action={remove} className="inline-form">
           <ConfirmButton
             message={`Delete "${title}" and all its notes? This cannot be undone.`}

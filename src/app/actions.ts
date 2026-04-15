@@ -103,3 +103,53 @@ export async function deleteNoteAction(noteId: string, topicId: string) {
   revalidatePath(`/topics/${topicId}`);
   revalidatePath("/core");
 }
+
+export async function renameTagAction(oldName: string, formData: FormData) {
+  const tags = validateTagsInput(formData.get("name"));
+  if (!tags.ok || tags.value.length !== 1) {
+    const msg =
+      !tags.ok
+        ? tags.error
+        : "Provide exactly one replacement tag.";
+    redirect(`/tags?err=${encodeURIComponent(msg)}`);
+  }
+  const target = tags.value[0];
+  if (target === oldName) redirect("/tags");
+
+  const existing = await db.tag.findUnique({ where: { name: target } });
+  if (existing) {
+    // Merge: point every note on the old tag at the target, then drop old.
+    const oldTag = await db.tag.findUnique({
+      where: { name: oldName },
+      include: { notes: { select: { id: true } } },
+    });
+    if (oldTag) {
+      await db.$transaction([
+        ...oldTag.notes.map((n) =>
+          db.note.update({
+            where: { id: n.id },
+            data: {
+              tags: {
+                disconnect: { id: oldTag.id },
+                connect: { id: existing.id },
+              },
+            },
+          }),
+        ),
+        db.tag.delete({ where: { id: oldTag.id } }),
+      ]);
+    }
+  } else {
+    await db.tag.update({ where: { name: oldName }, data: { name: target } });
+  }
+  revalidatePath("/tags");
+  revalidatePath("/core");
+  redirect("/tags");
+}
+
+export async function deleteTagAction(name: string) {
+  await db.tag.delete({ where: { name } }).catch(() => null);
+  revalidatePath("/tags");
+  revalidatePath("/core");
+  redirect("/tags");
+}
