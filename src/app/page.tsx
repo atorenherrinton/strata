@@ -1,31 +1,45 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { createTopic } from "./actions";
+import { NewTopicForm } from "@/components/NewTopicForm";
+
+function formatDate(d: Date): string {
+  return new Date(d).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export default async function HomePage() {
-  const topics = await db.topic.findMany({ orderBy: { createdAt: "desc" } });
+  const topics = await db.topic.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { _count: { select: { notes: true } } },
+  });
 
   return (
     <main>
-      <h1>Stratum</h1>
-      <p>
-        <Link href="/core">Core sample →</Link>
-      </p>
+      <h1>Topics</h1>
 
-      <h2>Topics</h2>
-      <ul>
-        {topics.map((t) => (
-          <li key={t.id}>
-            <Link href={`/topics/${t.id}`}>{t.title}</Link>
-          </li>
-        ))}
-      </ul>
+      {topics.length === 0 ? (
+        <p className="empty">
+          No topics yet. Start your first stratum below — a topic is the column
+          you stack notes onto.
+        </p>
+      ) : (
+        <ul className="topics-list" aria-label="Topics">
+          {topics.map((t) => (
+            <li key={t.id}>
+              <Link href={`/topics/${t.id}`}>{t.title}</Link>
+              <span className="topic-meta">
+                {t._count.notes} {t._count.notes === 1 ? "note" : "notes"} ·{" "}
+                started {formatDate(t.createdAt)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
-      <h2>New topic</h2>
-      <form action={createTopic}>
-        <input name="title" placeholder="Topic title" required />
-        <button type="submit">Create</button>
-      </form>
+      <NewTopicForm />
     </main>
   );
 }

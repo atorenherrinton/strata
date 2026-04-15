@@ -22,7 +22,7 @@ Later passes may be added (Pass 6: feature expansion, Pass 7: refactor, etc.) bu
 
 ## Current pass
 
-**Pass 3 — Rough.** Happy-path end-to-end. You can create a topic, add notes with tags, see them grouped into strata by date on the topic page, and "core sample" across topics by tag. Stack: Next.js 15 (App Router) + TypeScript + Prisma + SQLite. No validation, no error handling, no styling — that's Pass 4 (Detail).
+**Pass 4 — Detail.** Full CRUD (topics + notes), input validation with shared rules, typed error / loading / 404 boundaries on every segment, empty-state copy, a geological visual theme (earth-tone stratified layers, dark-mode aware), and accessibility (labeled inputs, `role="alert"` errors, `<time>` elements, semantic list roles). Stack unchanged: Next.js 15 (App Router) + TypeScript + Prisma + SQLite. Still deferred: tests, CI, deploy config — that's Pass 5 (Finish).
 
 ### Run it
 

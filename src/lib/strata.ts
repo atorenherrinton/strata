@@ -11,10 +11,3 @@ export function bucketByDate(notes: Note[]): Stratum[] {
     .sort((a, b) => (a[0] < b[0] ? 1 : -1))
     .map(([date, notes]) => ({ date, notes }));
 }
-
-export function parseTags(raw: string): string[] {
-  return raw
-    .split(",")
-    .map((t) => t.trim().toLowerCase())
-    .filter((t) => t.length > 0);
-}

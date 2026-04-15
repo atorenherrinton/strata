@@ -10,6 +10,7 @@ export type Note = {
   body: string;
   createdAt: Date;
   tags: string[];
+  topicTitle?: string;
 };
 
 export type Stratum = {

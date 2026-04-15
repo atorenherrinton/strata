@@ -47,3 +47,30 @@ End-to-end happy path. Every screen works when you do the obvious thing.
 - Deferred to Pass 4: input validation, empty-state copy, error handling, loading states, 404s, edit/delete, styling, accessibility.
 
 ---
+
+## Pass 4 — Detail (2026-04-15)
+
+Edge cases, validation, error handling, styling, and full CRUD across the whole repo.
+
+- **Validation** (`src/lib/validate.ts`): `validateTitle`, `validateBody`, `validateTagsInput` with typed `Valid<T>` result. Shared limits: title ≤120, body ≤4000, tags ≤12 per note, tag name `^[a-z0-9][a-z0-9\-_]*$`, dedup and case-fold. Wired into every server action and API route. The old `parseTags` in `lib/strata.ts` is gone.
+- **Server actions rewritten** (`src/app/actions.ts`): now `createTopicAction`, `updateTopicAction`, `deleteTopicAction`, `createNoteAction`, `updateNoteAction`, `deleteNoteAction`. Create actions use `useActionState`-compatible `FormState` with inline error return. Update/delete actions redirect and carry an `?err=` param on validation failure.
+- **Edit + delete UI:**
+  - `TopicHeader` — rename topic inline, delete topic with `confirm()` prompt (cascades to notes).
+  - `NoteCard` — edit/delete per note, inline edit form, delete confirm.
+  - `ConfirmButton` — small client wrapper for `window.confirm` guarded submits.
+- **Forms** (`NewTopicForm`, `NewNoteForm`): client components using `useActionState` + `useFormStatus` for pending/error states. Proper `<label>` pairs, `maxLength`, `autoComplete`, hints, `aria-labelledby`/`role="alert"`. Note form auto-resets on success.
+- **Empty states + 404s:**
+  - Home: "No topics yet" empty block.
+  - Topic page: calls `notFound()`; segment-level `not-found.tsx` renders "Topic not found".
+  - Core page: separate empty copy for "no tags yet" vs. "no notes tagged #x".
+  - Root `not-found.tsx` for stray URLs.
+- **Error + loading boundaries:** `src/app/error.tsx` (global client boundary), `src/app/loading.tsx`, plus per-segment `loading.tsx` for `/topics/[id]` and `/core` with themed copy ("Excavating…", "Drilling…", "Coring…").
+- **Styling** (`src/app/globals.css`): geological palette (earth tones, dark-mode aware), serif body with sans UI, stratified background bands cycling across six tones, pill tags, sticky site header. All components use semantic classes — no inline style except a couple of one-offs.
+- **Layout:** `SiteHeader` with brand + primary nav (Topics / Core sample) in `layout.tsx`; updated `metadata` description.
+- **API hardening:**
+  - `POST /api/topics` validates title, returns 400 on bad JSON / invalid.
+  - `GET/POST /api/topics/[id]/notes` returns 404 if topic missing; POST validates body + tags (accepts tags as array or CSV).
+  - `GET /api/core` requires `?tag=`, returns 400 otherwise; includes `count` in response.
+- **Accessibility:** labels on every input, `aria-label` on icon-less buttons, `role="alert"` on form errors, `<time dateTime>` on all dates, `role="list"`/`listitem` on strata column, visible focus rings, `prefers-color-scheme: dark` respected.
+- **Removed:** `src/components/TopicList.tsx` (superseded in Pass 3, confirmed dead).
+- **Still deferred to Pass 5 (Finish):** tests, CI, deploy config, docs beyond README, keyboard shortcuts, pagination for long note histories.
