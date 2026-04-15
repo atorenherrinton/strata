@@ -1,4 +1,5 @@
 import type { Note } from "./types";
+import { plainText } from "./markdown";
 
 // Tokenize a search query into lowercase terms. AND semantics between terms.
 export function tokenize(q: string): string[] {
@@ -16,7 +17,7 @@ export type SearchableNote = Note & { topicTitle?: string };
 export function matchesAll(note: SearchableNote, terms: string[]): boolean {
   if (terms.length === 0) return true;
   const haystack = [
-    note.body,
+    plainText(note.body),
     note.topicTitle ?? "",
     note.tags.join(" "),
   ]

@@ -41,7 +41,12 @@ export function NewNoteForm({ topicId }: { topicId: string }) {
           placeholder="What did you observe today?"
           required
         />
-        <span className="hint">Up to {BODY_MAX.toLocaleString()} characters.</span>
+        <span className="hint">
+          Up to {BODY_MAX.toLocaleString()} characters. Supports{" "}
+          <code>**bold**</code>, <code>*italic*</code>,{" "}
+          <code>`code`</code>, fenced <code>```blocks```</code>, and{" "}
+          <code>[links](https://…)</code>.
+        </span>
       </div>
       <div className="form-row">
         <label htmlFor="note-tags">Tags</label>

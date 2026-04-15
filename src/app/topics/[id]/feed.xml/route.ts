@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTopicWithNotes } from "@/lib/queries";
 import { buildRss } from "@/lib/rss";
+import { plainText, renderNoteMarkdown } from "@/lib/markdown";
 
 function baseUrl(req: Request): string {
   const env = process.env.NEXT_PUBLIC_SITE_URL;
@@ -20,16 +21,20 @@ export async function GET(
 
   const site = baseUrl(req);
   const link = `${site}/topics/${topic.id}`;
-  const items = topic.notes.slice(0, 50).map((n) => ({
-    title:
-      n.body.slice(0, 80).replace(/\n+/g, " ").trim() +
-      (n.body.length > 80 ? "…" : ""),
-    link,
-    guid: n.id,
-    pubDate: n.createdAt,
-    description: n.body,
-    categories: n.tags.map((t) => t.name),
-  }));
+  const items = topic.notes.slice(0, 50).map((n) => {
+    const plain = plainText(n.body);
+    const title =
+      plain.slice(0, 80).trim() + (plain.length > 80 ? "…" : "");
+    return {
+      title,
+      link,
+      guid: n.id,
+      pubDate: n.createdAt,
+      description: plain,
+      contentHtml: renderNoteMarkdown(n.body),
+      categories: n.tags.map((t) => t.name),
+    };
+  });
 
   const xml = buildRss({
     title: `Stratum — ${topic.title}`,

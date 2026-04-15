@@ -40,6 +40,11 @@ describe("matchesAll", () => {
   it("is case-insensitive", () => {
     expect(matchesAll(note({ body: "Feldspar" }), ["FELDSPAR"])).toBe(true);
   });
+  it("matches against the rendered plain text, not the markdown syntax", () => {
+    const n = note({ body: "the **granite** is _cold_" });
+    expect(matchesAll(n, ["granite"])).toBe(true);
+    expect(matchesAll(n, ["cold"])).toBe(true);
+  });
 });
 
 describe("highlight", () => {

@@ -157,6 +157,23 @@ The theme is surviving larger datasets and being a good citizen of the wider web
 - **Version bump.** 0.7.0 → 0.8.0.
 - **Still deferred:** real FTS backend (SQLite FTS5 / Postgres tsvector), richer tag colors, multi-user / auth, rate limiting on the import endpoint.
 
+---
+
+## Pass 9 — Rich content (2026-04-15)
+
+Note bodies become formatted text. Everywhere a note renders, it renders markdown; everywhere a note is stored or transmitted, the raw source is preserved.
+
+- **Safe-by-construction renderer (`src/lib/markdown.ts`).** Dependency-free. Supports `**bold**`, `*italic*`, `_italic_`, inline `` `code` ``, fenced ` ``` ` code blocks, `[label](url)` (http(s) and site-absolute `/paths` only — `javascript:` is ignored), bare http(s) autolinks, blank-line paragraphs, soft `<br>` line breaks. The output whitelist is: `<p>`, `<br>`, `<strong>`, `<em>`, `<code>`, `<pre>`, `<a href="..." rel="noopener noreferrer">`. All user text is escaped before any HTML is emitted; link + code extraction uses sentinel placeholders so later passes can't corrupt anchor tags. `plainText(raw)` is a companion projection that strips syntax for search haystacks and RSS `<description>`.
+- **`NoteCard` renders rich markdown** via `dangerouslySetInnerHTML` when not editing. Topic prefix moves to its own `<p>` so it doesn't collide with paragraph-level markup.
+- **Typography.** `globals.css` now styles `.note-body p / a / code / pre / strong` with a monospace stack for code, a bordered+tinted background for code blocks, horizontal-scroll on long lines, and dark-mode variants.
+- **Search alignment.** `matchesAll` now runs the note body through `plainText` before matching, so searching for `granite` matches a note that stored `**granite**`. Added a regression test.
+- **RSS upgrade (`src/lib/rss.ts`, `/topics/[id]/feed.xml`).** Feed items now carry both `<description>` (plain text) and `<content:encoded>` (CDATA-wrapped rendered HTML), with the `xmlns:content` namespace declared only when any item has HTML. Titles come from the plain-text projection so markdown syntax doesn't leak into feed listings.
+- **New-note form** gained a formatting hint below the body textarea advertising the supported syntax.
+- **Tests.** `src/lib/markdown.test.ts` covers: HTML escaping, attribute-quote escaping, bold/italic, inline + fenced code content escaping, autolink, `[text](url)` acceptance for http(s) and `/`, rejection of `javascript:`, URL-with-quote robustness, paragraph + soft-break splitting, sentinel-character immunity, and the `plainText` projection. Plus one regression test in `search.test.ts`. Totals: 10 files, 74 tests, all green. `tsc --noEmit` clean.
+- **Version bump.** 0.8.0 → 0.9.0.
+- **Still deferred:** real FTS, multi-user / auth, import rate limiting, richer tag colors, image/attachment support, task checkboxes in markdown.
+
+
 
 
 

@@ -6,6 +6,7 @@ import { deleteNoteAction, updateNoteAction } from "@/app/actions";
 import { ConfirmButton } from "./ConfirmButton";
 import { BODY_MAX } from "@/lib/validate";
 import { formatTime } from "@/lib/format";
+import { renderNoteMarkdown } from "@/lib/markdown";
 
 export function NoteCard({
   note,
@@ -59,14 +60,18 @@ export function NoteCard({
     );
   }
 
+  const rendered = renderNoteMarkdown(note.body);
   return (
     <article className="note-card">
-      <p className="note-body">
-        {topicPrefix ? (
+      {topicPrefix ? (
+        <p className="note-topic-line">
           <span className="note-topic-prefix">{topicPrefix}</span>
-        ) : null}
-        {note.body}
-      </p>
+        </p>
+      ) : null}
+      <div
+        className="note-body"
+        dangerouslySetInnerHTML={{ __html: rendered }}
+      />
       <div className="note-meta">
         <div className="tags" aria-label={note.tags.length ? "Tags" : undefined}>
           {note.tags.map((t) => (
